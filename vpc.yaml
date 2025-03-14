@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: CloudFormation template to create a VPC spanning three AZs with public and private subnets.
+Description: CloudFormation template to create a VPC in a single region with public and private subnets.
 
 Parameters:
   VpcCidr:
@@ -46,7 +46,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
         - Key: Name
-          Value: MyVPC
+          Value: Network-VPC
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -65,8 +65,9 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnetCidr1
-      AvailabilityZone: !Select [0, !GetAZs]
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PublicSubnet1
@@ -75,8 +76,9 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnetCidr2
-      AvailabilityZone: !Select [1, !GetAZs]
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PublicSubnet2
@@ -85,8 +87,9 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '' ] 
       CidrBlock: !Ref PublicSubnetCidr3
-      AvailabilityZone: !Select [2, !GetAZs]
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PublicSubnet3
@@ -95,8 +98,9 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '' ]
       CidrBlock: !Ref PrivateSubnetCidr1
-      AvailabilityZone: !Select [0, !GetAZs]
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PrivateSubnet1
@@ -105,8 +109,9 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '' ]
       CidrBlock: !Ref PrivateSubnetCidr2
-      AvailabilityZone: !Select [1, !GetAZs]
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PrivateSubnet2
@@ -116,7 +121,8 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref PrivateSubnetCidr3
-      AvailabilityZone: !Select [2, !GetAZs]
+      AvailabilityZone: !Select [2, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PrivateSubnet3
@@ -264,23 +270,18 @@ Outputs:
     Description: The ID of the VPC
     Value: !Ref VPC
 
-  PublicSubnetIds:
-    Description: The IDs of the public subnets
-    Value: 
-      - !Ref PublicSubnet1
-      - !Ref PublicSubnet2
-      - !Ref PublicSubnet3
+  PublicSubnets:
+    Description: A list of the public subnets
+    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3 ]]
+    Export:
+      Name: Public-subnets
 
-  PrivateSubnetIds:
-    Description: The IDs of the private subnets
-    Value: 
-      - !Ref PrivateSubnet1
-      - !Ref PrivateSubnet2
-      - !Ref PrivateSubnet3
+  PrivateSubnets:
+    Description: A list of the private subnets
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3 ]]
+    Export:
+      Name: private-subnets
 
   NATGatewayIds:
     Description: The IDs of the NAT Gateways
-    Value: 
-      - !Ref NATGateway1
-      - !Ref NATGateway2
-      - !Ref NATGateway3
+    Value: !Join [ ",", [ !Ref NATGateway1, !Ref NATGateway2, !Ref NATGateway3 ]]
